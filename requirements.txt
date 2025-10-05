@@ -1,0 +1,6 @@
+# AWS SDK for Python
+boto3>=1.26.0
+
+# For local development and testing
+pytest>=7.0.0
+requests>=2.28.0
