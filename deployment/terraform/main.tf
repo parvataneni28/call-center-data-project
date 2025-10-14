@@ -65,7 +65,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
 
 # Lambda function
 resource "aws_lambda_function" "chatbot" {
-  filename         = "../versions/chatbot_api_working.zip"
+  filename         = "../versions/chatbot_api_latest.zip"
   function_name    = var.function_name
   role            = aws_iam_role.lambda_role.arn
   handler         = "lambda_function.lambda_handler"
@@ -73,7 +73,7 @@ resource "aws_lambda_function" "chatbot" {
   timeout         = 30
   memory_size     = 512
 
-  source_code_hash = filebase64sha256("../versions/chatbot_api_working.zip")
+  source_code_hash = filebase64sha256("../versions/chatbot_api_latest.zip")
 
   environment {
     variables = {

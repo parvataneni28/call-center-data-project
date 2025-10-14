@@ -1,0 +1,79 @@
+name: Deploy Call Center Chatbot
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION: us-east-1
+  TERRAFORM_VERSION: 1.5.0
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run tests
+      run: |
+        cd tests
+        chmod +x test_all_questions.sh
+        # ./test_all_questions.sh  # Uncomment when tests don't require AWS
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+    
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ${{ env.TERRAFORM_VERSION }}
+    
+    - name: Create Lambda deployment package
+      run: |
+        cd src
+        zip -r ../deployment/versions/chatbot_api_latest.zip lambda_function.py
+    
+    - name: Terraform Init
+      run: |
+        cd deployment/terraform
+        terraform init
+    
+    - name: Terraform Plan
+      run: |
+        cd deployment/terraform
+        terraform plan -out=tfplan
+    
+    - name: Terraform Apply
+      run: |
+        cd deployment/terraform
+        terraform apply -auto-approve tfplan
+    
+    - name: Get Function URL
+      run: |
+        cd deployment/terraform
+        echo "🚀 Chatbot deployed successfully!"
+        echo "Function URL: $(terraform output -raw function_url)"

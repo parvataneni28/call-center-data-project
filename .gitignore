@@ -34,6 +34,9 @@ test_results_*.txt
 *.tmp
 *.temp
 
+# Deployment packages
+deployment/versions/chatbot_api_latest.zip
+
 # Terraform
 *.tfstate
 *.tfstate.*
